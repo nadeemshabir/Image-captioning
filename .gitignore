@@ -1,0 +1,33 @@
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+build/
+dist/
+.pytest_cache/
+
+# Data and model artifacts (too large for git; see README for how to obtain).
+# Leading slashes matter: a bare "data/" would also swallow rsicd_captioner/data/.
+/data/
+/checkpoints/
+*.pt
+*.pth
+*.csv
+!results/*.csv
+
+# Notebook state
+.ipynb_checkpoints/
+
+# Editors / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Local agent config
+.claude/

@@ -1,0 +1,125 @@
+{
+  "run_metadata": {
+    "hardware": "Tesla P100-PCIE-16GB",
+    "pytorch_version": "2.6.0+cu124",
+    "epochs": 5,
+    "batch_size": 256,
+    "effective_batch_size": 512,
+    "accumulation_steps": 2,
+    "mixed_precision": "fp16 autocast + GradScaler",
+    "captions_per_image": 5,
+    "note": "All numbers below are from the recorded notebook run. Caption metrics are computed on validation subsets, not the held-out test split."
+  },
+
+  "dataset": {
+    "images": {"train": 8734, "valid": 1094, "test": 1093, "total": 10921},
+    "captions": {"train": 41518, "valid": 5069, "test": 5129},
+    "dataset_items": {"train": 41518, "valid": 5067}
+  },
+
+  "vocabulary": {
+    "size": 1803,
+    "cap": 10000,
+    "min_word_freq": 2,
+    "max_caption_length": 24,
+    "special_tokens": ["<pad>", "<bos>", "<eos>", "<unk>"],
+    "most_frequent": [".", "a", "are", "green", "many", "trees", "and", "in", "buildings", "of"]
+  },
+
+  "text_statistics": [
+    {"split": "Train", "num_captions": 41518, "total_words": 496785, "unique_words": 2781,
+     "vocab_coverage": 99.80, "oov_percentage": 0.20, "avg_length": 12.0, "max_length": 165},
+    {"split": "Validation", "num_captions": 5069, "total_words": 51689, "unique_words": 1183,
+     "vocab_coverage": 98.82, "oov_percentage": 1.18, "avg_length": 10.2, "max_length": 28},
+    {"split": "Test", "num_captions": 5129, "total_words": 63889, "unique_words": 1749,
+     "vocab_coverage": 98.17, "oov_percentage": 1.83, "avg_length": 12.5, "max_length": 34}
+  ],
+
+  "model_sizes": {
+    "encoders": {
+      "resnet18": {"params": 11439168, "native_feature_dim": 512},
+      "mobilenet_v2": {"params": 2879744, "native_feature_dim": 1280}
+    },
+    "captioners_millions": {
+      "ResNet+LSTM": 15.9,
+      "MobileNet+LSTM": 7.4,
+      "ResNet+Transformer": 30.6,
+      "MobileNet+Transformer": 22.1
+    }
+  },
+
+  "training": {
+    "ResNet+LSTM":           {"best_val_loss": 3.2459, "best_epoch": 5, "final_train_loss": 3.1333, "final_val_loss": 3.2459},
+    "MobileNet+LSTM":        {"best_val_loss": 3.2367, "best_epoch": 5, "final_train_loss": 3.1931, "final_val_loss": 3.2367},
+    "ResNet+Transformer":    {"best_val_loss": 2.0274, "best_epoch": 4, "final_train_loss": 1.5904, "final_val_loss": 2.0276},
+    "MobileNet+Transformer": {"best_val_loss": 1.9487, "best_epoch": 5, "final_train_loss": 1.6987, "final_val_loss": 1.9487}
+  },
+
+  "evaluation": {
+    "samples": 800,
+    "split": "validation subset",
+    "ResNet+LSTM":           {"bleu4_mean": 0.0026, "bleu4_std": 0.0265, "meteor_mean": 0.2165, "meteor_std": 0.1085, "caption_length_mean": 11.9, "caption_length_std": 2.2, "repetition_percentage": 60.1},
+    "MobileNet+LSTM":        {"bleu4_mean": 0.0055, "bleu4_std": 0.0422, "meteor_mean": 0.2044, "meteor_std": 0.1157, "caption_length_mean": 10.0, "caption_length_std": 1.6, "repetition_percentage": 17.8},
+    "ResNet+Transformer":    {"bleu4_mean": 0.0777, "bleu4_std": 0.1759, "meteor_mean": 0.4001, "meteor_std": 0.2473, "caption_length_mean": 11.9, "caption_length_std": 2.3, "repetition_percentage": 0.4},
+    "MobileNet+Transformer": {"bleu4_mean": 0.0826, "bleu4_std": 0.1692, "meteor_mean": 0.3914, "meteor_std": 0.2470, "caption_length_mean": 13.0, "caption_length_std": 2.3, "repetition_percentage": 24.4}
+  },
+
+  "experiments": {
+    "1_backbone_comparison": {
+      "note": "Unsmoothed BLEU-4 on a 500-sample validation subset; inference time is per 16-image batch.",
+      "ResNet+LSTM":           {"inference_ms": 23.81, "memory_mb": 2.8, "bleu4": 0.0036, "meteor": 0.2232},
+      "MobileNet+LSTM":        {"inference_ms": 22.57, "memory_mb": 2.6, "bleu4": 0.0060, "meteor": 0.2135},
+      "ResNet+Transformer":    {"inference_ms": 72.69, "memory_mb": 2.8, "bleu4": 0.0671, "meteor": 0.3922},
+      "MobileNet+Transformer": {"inference_ms": 85.49, "memory_mb": 2.6, "bleu4": 0.0677, "meteor": 0.3843}
+    },
+
+    "2_rotation_invariance": {
+      "note": "Mean Jaccard overlap of caption word sets at 90/180/270 deg against the 0 deg caption, over 6 diverse scenes.",
+      "ResNet+LSTM": {"consistency_score": 0.7881},
+      "MobileNet+Transformer": {"consistency_score": 0.7489}
+    },
+
+    "3_vision_text_interface": {
+      "note": "Unsmoothed BLEU-4 on a fixed 50-sample slice.",
+      "ResNet+LSTM":           {"bleu4": 0.0000},
+      "MobileNet+LSTM":        {"bleu4": 0.0000},
+      "ResNet+Transformer":    {"bleu4": 0.0431},
+      "MobileNet+Transformer": {"bleu4": 0.0588}
+    },
+
+    "4_lstm_interface": {
+      "note": "3 epochs on 500 training / 100 validation items.",
+      "LSTM_InitHidden": {"final_train_loss": 1.1281, "final_val_loss": 2.6363, "convergence_speed": 2.0647},
+      "LSTM_ImgToken":   {"final_train_loss": 1.1147, "final_val_loss": 2.6602, "convergence_speed": 2.1772}
+    },
+
+    "5_transformer_memory_tokens": {
+      "note": "3 epochs on 300 training / 100 validation items.",
+      "Transformer_1Token": {"final_train_loss": 1.0392, "final_val_loss": 2.9998, "convergence": 1.9812},
+      "Transformer_4Token": {"final_train_loss": 0.9689, "final_val_loss": 3.0753, "convergence": 1.9749}
+    },
+
+    "6_dropout_placement": {
+      "note": "3 epochs on 400 training / 100 validation items. overfitting_gap = train loss - val loss.",
+      "LSTM_EmbedDropout":   {"final_train_loss": 1.1697, "final_val_loss": 2.7702, "overfitting_gap": -1.6004, "regularization_effect": 0.2522},
+      "LSTM_DecoderDropout": {"final_train_loss": 1.1109, "final_val_loss": 2.7593, "overfitting_gap": -1.6484, "regularization_effect": 0.2514}
+    },
+
+    "7_length_penalty": {
+      "note": "Smoothed BLEU-4 over 40 validation samples. Output was byte-identical at every penalty value for all four models, so the sweep is flat: the argmax over <eos> was never close enough for the penalty to change a decision.",
+      "penalties_tested": [0.0, 0.5, 1.0, 2.0],
+      "ResNet+LSTM":           {"bleu4_all_penalties": 0.1997, "avg_length": 9.4},
+      "MobileNet+LSTM":        {"bleu4_all_penalties": 0.1783, "avg_length": 8.9},
+      "ResNet+Transformer":    {"bleu4_all_penalties": 0.2478, "avg_length": 11.3},
+      "MobileNet+Transformer": {"bleu4_all_penalties": 0.2544, "avg_length": 11.6}
+    }
+  },
+
+  "sample_outputs": {
+    "note": "Same demo image captioned by all four models.",
+    "ResNet+LSTM": "many buildings are are in a of a .",
+    "MobileNet+LSTM": "many buildings are in a a .",
+    "ResNet+Transformer": "many cars are in a large building .",
+    "MobileNet+Transformer": "many buildings are around a large playground ."
+  }
+}

@@ -1,0 +1,17 @@
+# Core
+torch>=2.0.0
+torchvision>=0.15.0
+numpy>=1.24.0
+pandas>=2.0.0
+Pillow>=10.0.0
+
+# Metrics
+nltk>=3.8.0
+
+# Plots and notebook
+matplotlib>=3.7.0
+seaborn>=0.12.0
+jupyter>=1.0.0
+
+# Memory monitoring during training
+psutil>=5.9.0

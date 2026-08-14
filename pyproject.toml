@@ -1,0 +1,31 @@
+[build-system]
+requires = ["setuptools>=68.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "rsicd-captioner"
+version = "0.1.0"
+description = "Image captioning for remote-sensing imagery with CNN encoders and LSTM/Transformer decoders"
+readme = "README.md"
+requires-python = ">=3.10"
+license = { file = "LICENSE" }
+dependencies = [
+    "torch>=2.0.0",
+    "torchvision>=0.15.0",
+    "numpy>=1.24.0",
+    "pandas>=2.0.0",
+    "Pillow>=10.0.0",
+    "nltk>=3.8.0",
+    "matplotlib>=3.7.0",
+    "psutil>=5.9.0",
+]
+
+[project.optional-dependencies]
+notebook = ["jupyter>=1.0.0", "seaborn>=0.12.0"]
+
+[tool.setuptools.packages.find]
+include = ["rsicd_captioner*"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
