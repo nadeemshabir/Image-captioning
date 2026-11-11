@@ -25,14 +25,19 @@ class CNNEncoder(nn.Module):
         super().__init__()
         self.model_name = model_name
 
+        # IMAGENET1K_V1 is pinned on purpose: it is the exact checkpoint the
+        # recorded run downloaded (resnet18-f37072fd, mobilenet_v2-b0353104),
+        # and MobileNet's "DEFAULT" now resolves to a different (V2) checkpoint.
         if model_name == "resnet18":
-            self.cnn = tv_models.resnet18(pretrained=pretrained)
+            weights = tv_models.ResNet18_Weights.IMAGENET1K_V1 if pretrained else None
+            self.cnn = tv_models.resnet18(weights=weights)
             # Replacing the classifier with Identity leaves the global average
             # pool in place, so forward() returns pooled features directly.
             self.cnn.fc = nn.Identity()
             self.feature_dim = 512
         elif model_name == "mobilenet":
-            self.cnn = tv_models.mobilenet_v2(pretrained=pretrained)
+            weights = tv_models.MobileNet_V2_Weights.IMAGENET1K_V1 if pretrained else None
+            self.cnn = tv_models.mobilenet_v2(weights=weights)
             self.cnn.classifier = nn.Identity()
             self.feature_dim = 1280
         else:
