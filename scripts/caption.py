@@ -1,7 +1,7 @@
 """Caption a single image with one or more trained models.
 
     python scripts/caption.py path/to/image.jpg
-    python scripts/caption.py image.jpg --models ResNet+Transformer --gradcam
+    python scripts/caption.py image.jpg --models ResNet+Transformer
 """
 
 import argparse

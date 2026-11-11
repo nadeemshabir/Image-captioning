@@ -48,13 +48,18 @@ def as_token_list(caption) -> list[str]:
     return list(caption)
 
 
-def compute_bleu4(hypothesis, references, smooth: bool = True) -> float:
+def compute_bleu4(hypothesis, references, smooth: bool = False) -> float:
     """BLEU-4 for one caption against one or more references.
 
-    Smoothing matters here: BLEU multiplies its n-gram precisions, so a single
-    caption with no matching 4-gram scores exactly 0 and drags the mean down
-    regardless of how good its unigrams were. Smoothing method 1 adds a small
-    epsilon to zero counts, which keeps short-caption scores informative.
+    Unsmoothed by default, because that is what the recorded run reports for
+    the main evaluation and Experiments 1 and 3 - so the scripts reproduce the
+    numbers in ``results/metrics.json``.
+
+    Without smoothing, BLEU multiplies its n-gram precisions, so a caption with
+    no matching 4-gram scores exactly 0 regardless of how good its unigrams
+    were. ``smooth=True`` applies smoothing method 1, which adds a small epsilon
+    to zero counts and keeps short-caption scores informative; Experiment 7
+    uses it, as the recorded run did. The two are not comparable.
     """
     hyp = as_token_list(hypothesis)
     if not hyp or not references:

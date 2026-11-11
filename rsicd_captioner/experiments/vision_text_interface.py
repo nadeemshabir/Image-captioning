@@ -125,7 +125,7 @@ class LSTMDecoderImgToken(nn.Module):
 
 def build_feature_extractor(feature_dim: int = 512):
     """A frozen-architecture ResNet-18 trunk that outputs pooled features."""
-    resnet = tv_models.resnet18(pretrained=True)
+    resnet = tv_models.resnet18(weights=tv_models.ResNet18_Weights.IMAGENET1K_V1)
     return nn.Sequential(
         *list(resnet.children())[:-1], nn.AdaptiveAvgPool2d(1), nn.Flatten()
     ), feature_dim
@@ -153,9 +153,11 @@ def train_and_compare(models_dict: dict, train_dataset, val_dataset, tokenizer, 
     interface *learns faster from the same budget*, not which wins after full
     convergence, so a small controlled comparison answers it more cheaply.
     """
-    train_loader = DataLoader(Subset(train_dataset, range(0, train_samples)),
+    n_train = min(train_samples, len(train_dataset))
+    n_val = min(val_samples, len(val_dataset))
+    train_loader = DataLoader(Subset(train_dataset, range(0, n_train)),
                               batch_size=batch_size, shuffle=True, num_workers=0)
-    val_loader = DataLoader(Subset(val_dataset, range(0, val_samples)),
+    val_loader = DataLoader(Subset(val_dataset, range(0, n_val)),
                             batch_size=batch_size, shuffle=False, num_workers=0)
     criterion = nn.CrossEntropyLoss(ignore_index=tokenizer.word_to_idx["<pad>"])
 

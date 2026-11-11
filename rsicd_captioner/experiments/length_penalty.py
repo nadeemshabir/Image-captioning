@@ -5,11 +5,12 @@ often wins the argmax before the caption has said anything specific. Subtracting
 a small, step-dependent amount from the <eos> logit delays that decision without
 forbidding it outright.
 
-An important caveat on interpreting the results: the penalty only changes the
-output if <eos> was close to winning. Where a model's argmax is decisive, the
-generated sequence is identical at every penalty value, and identical output
-means identical BLEU. Flat rows across the sweep are a real finding about the
-model's confidence, not a broken experiment.
+Interpreting the results: the penalty only changes the output if <eos> was
+close to winning, so a flat row across the sweep can be genuine. The recorded
+run's flat rows are *not* evidence of that, though - its penalised decoder
+failed on the first step and fell back to plain greedy decoding for every
+penalty value (see ``greedy_decode_with_penalty``). Re-run with this version
+for real numbers.
 """
 
 import numpy as np
@@ -40,10 +41,14 @@ def greedy_decode_with_penalty(model, images, tokenizer, max_length: int = 25,
     generated = torch.full((batch_size, 1), bos, dtype=torch.long, device=device)
 
     for step in range(max_length):
-        # Feed the whole prefix back through the model, matching how it was
-        # trained (teacher forcing over a full sequence).
-        outputs = model(images, generated)
-        logits = outputs[:, -1, :].clone()
+        # Re-run the teacher-forcing forward pass over the whole prefix.
+        # forward() drops the final position (in training that is the target),
+        # so a placeholder is appended: the decoder then reads exactly
+        # `generated`, and its last output predicts the next token. Passing
+        # `generated` as-is hands the decoder an empty sequence on step 0 - the
+        # recorded run did that, raised, and fell back to plain greedy decoding.
+        prefix = torch.cat([generated, generated[:, -1:]], dim=1)
+        logits = model(images, prefix)[:, -1, :].clone()
 
         if length_penalty > 0 and step > warmup_steps:
             logits[:, eos] -= length_penalty * (step - warmup_steps) * scale
@@ -94,7 +99,9 @@ def compare_length_penalties(model, dataloader, tokenizer, model_name, device,
                     references_all.append([ref_tokens])
                     lengths.append(len(gen_tokens))
 
-        scores = [compute_bleu4(g, r) for g, r in zip(generated_all, references_all)]
+        # Smoothed, matching the recorded run's Experiment 7 (and only Experiment 7).
+        scores = [compute_bleu4(g, r, smooth=True)
+                  for g, r in zip(generated_all, references_all)]
         mean, _ = aggregate(scores)
 
         results[penalty] = {

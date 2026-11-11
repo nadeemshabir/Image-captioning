@@ -83,9 +83,11 @@ def compare(models_dict: dict, train_dataset, val_dataset, tokenizer, device,
             epochs: int = 3, train_samples: int = 400, val_samples: int = 100,
             batch_size: int = 16, lr: float = 1e-3) -> dict:
     """Train both placements and report the train/val gap for each."""
-    train_loader = DataLoader(Subset(train_dataset, range(0, train_samples)),
+    n_train = min(train_samples, len(train_dataset))
+    n_val = min(val_samples, len(val_dataset))
+    train_loader = DataLoader(Subset(train_dataset, range(0, n_train)),
                               batch_size=batch_size, shuffle=True, num_workers=0)
-    val_loader = DataLoader(Subset(val_dataset, range(0, val_samples)),
+    val_loader = DataLoader(Subset(val_dataset, range(0, n_val)),
                             batch_size=batch_size, shuffle=False, num_workers=0)
     criterion = nn.CrossEntropyLoss(ignore_index=tokenizer.word_to_idx["<pad>"])
 
